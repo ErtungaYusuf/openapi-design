@@ -1,0 +1,220 @@
+openapi: 3.0.3
+info:
+  title: University Library API
+  description: Üniversiteye ait çevrim içi kütüphane sistemi için RESTful API
+  version: "1.0.0"
+servers:
+  - url: https://api.universitylibrary.edu/forconeptonly
+    description: Production Server
+
+tags:
+  - name: Books
+    description: Kitap işlemleri
+  - name: Students
+    description: Öğrenci işlemleri
+  - name: Loans
+    description: Kitap ödünç alma işlemleri
+
+paths:
+  /books:
+    get:
+      tags: [Books]
+      summary: Tüm kitapları getir
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+          required: false
+          description: Sayfa numarası
+        - name: size
+          in: query
+          schema:
+            type: integer
+          required: false
+          description: Sayfa başına kayıt
+      responses:
+        "200":
+          description: Kitap listesi
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Book'
+
+    post:
+      tags: [Books]
+      summary: Yeni kitap ekle
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Book'
+            example:
+              id: "123e4567-e89b-12d3-a456-426614174000"
+              title: "Sistem Programlama"
+              author: "x y"
+              isbn: "978-3-16-148410-0"
+              publisher: "Yayın Evi"
+              pageCount: 420
+              stock: 10
+      responses:
+        "201":
+          description: Kitap başarıyla eklendi
+        "400":
+          description: Geçersiz veri
+        "500":
+          description: Sunucu hatası
+
+  /books/{id}:
+    get:
+      tags: [Books]
+      summary: Tek kitap getir
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Kitap bulundu
+        "404":
+          description: Kitap bulunamadı
+
+    put:
+      tags: [Books]
+      summary: Kitap bilgisi güncelle
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Book'
+      responses:
+        "200":
+          description: Güncellendi
+        "400":
+          description: Hatalı veri
+        "404":
+          description: Kitap bulunamadı
+
+    delete:
+      tags: [Books]
+      summary: Kitap sil
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Silindi
+        "404":
+          description: Bulunamadı
+
+  /loans/{id}/return:
+    patch:
+      tags: [Loans]
+      summary: Kitap iade et
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Kitap iade edildi
+        "404":
+          description: Kayıt bulunamadı
+
+components:
+  schemas:
+    Book:
+      type: object
+      required:
+        - id
+        - title
+        - author
+        - isbn
+        - publisher
+        - pageCount
+        - stock
+      properties:
+        id:
+          type: string
+          format: uuid
+        title:
+          type: string
+        author:
+          type: string
+        isbn:
+          type: string
+          format: isbn
+        publisher:
+          type: string
+        pageCount:
+          type: integer
+        stock:
+          type: integer
+
+    Student:
+      type: object
+      required: [id, name, studentNumber, email, isActive]
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        studentNumber:
+          type: string
+        email:
+          type: string
+          format: email
+        isActive:
+          type: boolean
+
+    Loan:
+      type: object
+      required: [id, studentId, bookId, loanDate, status]
+      properties:
+        id:
+          type: string
+          format: uuid
+        studentId:
+          type: string
+          format: uuid
+        bookId:
+          type: string
+          format: uuid
+        loanDate:
+          type: string
+          format: date
+        returnDate:
+          type: string
+          format: date
+          nullable: true
+        status:
+          type: string
+          enum: [ongoing, returned, late]
+
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
