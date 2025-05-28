@@ -4,4 +4,4 @@ Bu proje, üniversiteye ait çevrim içi kütüphane sistemi için bir REST API 
 
 ## İçerik
 - `openapi.yaml` (API tanımı)
-- `DELIVERY.md`
+- `OpenAPI_Delivery.md` 
